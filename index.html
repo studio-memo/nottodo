@@ -1,0 +1,591 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>NOTTODO</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Zen+Kaku+Gothic+New:wght@400;500;700&display=swap" rel="stylesheet">
+
+  <style>
+    body {
+      margin: 0;
+      padding: 40px 24px;
+      background: #f8f5ef;
+      color: #444;
+      font-family: "Zen Kaku Gothic New", sans-serif;
+    }
+
+    .app {
+      max-width: 650px;
+      position: relative;
+    }
+
+    .calendar-btn {
+      position: absolute;
+      top: 4px;
+      right: 0;
+      border: 1px solid #ddd3c5;
+      background: #fffdf9;
+      color: #6f7f8f;
+      border-radius: 999px;
+      width: 54px;
+      height: 54px;
+      font-size: 12px;
+      font-weight: 500;
+      letter-spacing: 0.08em;
+      cursor: pointer;
+    }
+
+    h1 {
+      font-size: 34px;
+      font-weight: 500;
+      letter-spacing: 0.08em;
+      margin: 0 0 8px;
+    }
+
+    .subtitle {
+      color: #777;
+      font-size: 14px;
+      margin: 0 0 8px;
+    }
+
+    .date {
+      color: #999;
+      font-size: 13px;
+      margin-bottom: 36px;
+    }
+
+    .input-area, .list {
+      width: 100%;
+      max-width: 520px;
+      box-sizing: border-box;
+    }
+
+    .input-area {
+      background: rgba(255, 255, 255, 0.55);
+      border: 1px solid #e6dfd3;
+      border-radius: 18px;
+      padding: 18px;
+      margin-bottom: 28px;
+    }
+
+    input, select, button {
+      font-family: inherit;
+      font-size: 15px;
+    }
+
+    input {
+      width: 100%;
+      box-sizing: border-box;
+      border: 1px solid #ddd3c5;
+      border-radius: 12px;
+      padding: 12px 14px;
+      background: #fffdf9;
+      color: #444;
+      margin-bottom: 12px;
+    }
+
+    .row {
+      display: flex;
+      gap: 10px;
+    }
+
+    select {
+      flex: 1;
+      border: 1px solid #ddd3c5;
+      border-radius: 12px;
+      padding: 10px;
+      background: #fffdf9;
+      color: #555;
+    }
+
+    .add-btn {
+      border: none;
+      border-radius: 12px;
+      padding: 10px 16px;
+      background: #6f7f8f;
+      color: white;
+      cursor: pointer;
+    }
+
+    .list {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    .card {
+      width: 100%;
+      box-sizing: border-box;
+      background: #fffdf9;
+      border: 1px solid #e6dfd3;
+      border-radius: 18px;
+      padding: 16px;
+      transition: opacity 0.5s, background 0.5s;
+    }
+
+    .card.stopped {
+      background: #f0e9df;
+      border-color: #d8cbbd;
+    }
+
+    .not-text {
+      font-size: 17px;
+      margin-bottom: 8px;
+    }
+
+    .meta {
+      font-size: 12px;
+      color: #999;
+      margin-bottom: 8px;
+    }
+
+    .time {
+      font-size: 13px;
+      color: #888;
+      margin-bottom: 8px;
+    }
+
+    .bar-bg {
+      width: 100%;
+      height: 7px;
+      background: #eee7dc;
+      border-radius: 999px;
+      overflow: hidden;
+      margin-bottom: 10px;
+    }
+
+    .bar {
+      height: 100%;
+      background: #9aa8b5;
+      width: 100%;
+      transition: width 0.5s;
+    }
+
+    .stop-btn {
+      border: 1px solid #ddd3c5;
+      border-radius: 999px;
+      padding: 7px 12px;
+      background: #fffdf9;
+      color: #777;
+      font-size: 13px;
+      cursor: pointer;
+    }
+
+    .message {
+      color: #aaa;
+      font-size: 13px;
+      margin-top: 8px;
+    }
+
+    .overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(30, 30, 30, 0.18);
+      display: none;
+      justify-content: center;
+      align-items: center;
+      padding: 24px;
+      box-sizing: border-box;
+      z-index: 1000;
+    }
+
+    .overlay.show {
+      display: flex;
+    }
+
+    .popup {
+      width: 100%;
+      max-width: 560px;
+      background: #fffdf9;
+      border: 1px solid #e6dfd3;
+      border-radius: 24px;
+      padding: 24px;
+      box-sizing: border-box;
+      max-height: 80vh;
+      overflow-y: auto;
+    }
+
+    .popup-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+    }
+
+    .popup-title {
+      font-size: 18px;
+      font-weight: 500;
+      color: #555;
+    }
+
+    .close-btn {
+      border: none;
+      background: transparent;
+      color: #999;
+      font-size: 14px;
+      cursor: pointer;
+    }
+
+    .mini-calendar {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 6px;
+      margin-bottom: 22px;
+    }
+
+    .day-cell {
+      aspect-ratio: 1 / 1;
+      border-radius: 10px;
+      background: #f4efe7;
+      color: #999;
+      font-size: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .day-cell.has-log {
+      background: #dfe6ea;
+      color: #566878;
+      font-weight: 500;
+    }
+
+    .log-day {
+      border-top: 1px solid #eee7dc;
+      padding: 14px 0;
+      color: #666;
+    }
+
+    .log-date {
+      font-weight: 500;
+      margin-bottom: 8px;
+    }
+
+    .log-item {
+      font-size: 14px;
+      color: #777;
+      margin: 4px 0;
+    }
+
+    .log-stopped {
+      color: #9a7b66;
+    }
+
+   .card.finished {
+  opacity: 0.08 !important;
+  filter: blur(0.3px);
+} 
+  </style>
+</head>
+
+<body>
+  <div class="app">
+    <button class="calendar-btn" onclick="toggleLog()">LOG</button>
+
+    <h1>NOTTODO</h1>
+    <p class="subtitle">今日は、やらないことを決める。</p>
+    <div id="todayDate" class="date"></div>
+
+    <div class="input-area">
+      <input id="notInput" type="text" placeholder="やらないことを書く">
+      <div class="row">
+        <select id="timeSelect">
+          <option value="30">30分</option>
+          <option value="60">1時間</option>
+          <option value="180">3時間</option>
+          <option value="360">6時間</option>
+          <option value="today">今日中</option>
+        </select>
+        <button class="add-btn" onclick="addNotTodo()">置いておく</button>
+      </div>
+    </div>
+
+    <div id="list" class="list"></div>
+  </div>
+
+  <div id="overlay" class="overlay">
+    <div class="popup">
+      <div class="popup-header">
+        <div class="popup-title">LOG</div>
+        <button class="close-btn" onclick="closeLog()">CLOSE</button>
+      </div>
+
+      <div id="calendar" class="mini-calendar"></div>
+      <div id="logPanel"></div>
+    </div>
+  </div>
+
+  <script>
+    const list = document.getElementById("list");
+    const todayDate = document.getElementById("todayDate");
+    const logPanel = document.getElementById("logPanel");
+    const calendar = document.getElementById("calendar");
+
+    let items = [];
+    const todayKey = getDateKey(new Date());
+    let selectedDate = null;
+
+    todayDate.textContent = formatDate(new Date());
+
+    loadItems();
+    renderItems();
+
+    function getDateKey(date) {
+      const y = date.getFullYear();
+      const m = String(date.getMonth() + 1).padStart(2, "0");
+      const d = String(date.getDate()).padStart(2, "0");
+      return `${y}-${m}-${d}`;
+    }
+
+    function formatDate(date) {
+      const y = date.getFullYear();
+      const m = String(date.getMonth() + 1).padStart(2, "0");
+      const d = String(date.getDate()).padStart(2, "0");
+      return `${y}.${m}.${d}`;
+    }
+
+    function formatTime(timestamp) {
+      const date = new Date(timestamp);
+      const h = String(date.getHours()).padStart(2, "0");
+      const m = String(date.getMinutes()).padStart(2, "0");
+      return `${h}:${m}`;
+    }
+
+    function getEndTime(value) {
+      if (value === "today") {
+        const end = new Date();
+        end.setHours(23, 59, 59, 999);
+        return end.getTime();
+      }
+
+      return Date.now() + Number(value) * 60 * 1000;
+    }
+
+    function addNotTodo() {
+      const input = document.getElementById("notInput");
+      const timeValue = document.getElementById("timeSelect").value;
+      const text = input.value.trim();
+
+      if (!text) return;
+
+      const now = Date.now();
+
+      const item = {
+        id: now,
+        date: todayKey,
+        text: text,
+        start: now,
+        end: getEndTime(timeValue),
+        stopped: false,
+        stoppedAt: null
+      };
+
+      items.unshift(item);
+      saveItems();
+      renderItems();
+
+      input.value = "";
+    }
+
+    function renderItems() {
+      list.innerHTML = "";
+
+      const todayItems = items.filter(item => item.date === todayKey);
+
+      todayItems.forEach(item => {
+        const card = document.createElement("div");
+        card.className = "card";
+        if (item.stopped) card.classList.add("stopped");
+
+        card.innerHTML = `
+          <div class="not-text">${escapeHtml(item.text)}</div>
+          <div class="meta">${formatTime(item.start)} から置いている</div>
+          <div class="time"></div>
+          <div class="bar-bg"><div class="bar"></div></div>
+          <button class="stop-btn">やっちゃった</button>
+          <div class="message"></div>
+        `;
+
+        list.appendChild(card);
+
+        const timeText = card.querySelector(".time");
+        const bar = card.querySelector(".bar");
+        const message = card.querySelector(".message");
+        const stopBtn = card.querySelector(".stop-btn");
+
+        stopBtn.addEventListener("click", () => {
+          item.stopped = true;
+          item.stoppedAt = Date.now();
+          saveItems();
+          renderItems();
+        });
+
+        updateCard(item, card, timeText, bar, message, stopBtn);
+      });
+    }
+
+    function updateCard(item, card, timeText, bar, message, stopBtn) {
+      const now = item.stopped ? item.stoppedAt : Date.now();
+      const total = item.end - item.start;
+      const left = item.end - now;
+      const progress = Math.max(left / total, 0);
+
+      card.style.opacity = 0.45 + progress * 0.55;
+      bar.style.width = progress * 100 + "%";
+
+      if (item.stopped) {
+        timeText.textContent = `${formatTime(item.stoppedAt)} で止まった`;
+        message.textContent = "今日はここまで耐えた";
+        stopBtn.style.display = "none";
+        return;
+      }
+
+      if (left <= 0) {
+        timeText.textContent = "禁止時間は終わり";
+        message.textContent = "もう手放していい";
+        bar.style.width = "0%";
+        card.style.opacity = 0.12;
+        card.classList.add("finished");
+        stopBtn.style.display = "none";
+        return;
+      }
+
+      const leftMinutes = Math.ceil(left / 60000);
+
+      const isTodayMode =
+      new Date(item.end).getHours() === 23 &&
+      new Date(item.end).getMinutes() === 59;
+
+      if (isTodayMode) {
+
+  timeText.textContent =
+    `今日はもう見なくていい`;
+
+} else {
+
+      timeText.textContent =
+      `あと ${leftMinutes} 分`;
+
+}
+     setTimeout(() => {
+  updateCard(item, card, timeText, bar, message, stopBtn);
+}, 1000);
+}
+    function toggleLog() {
+      document.getElementById("overlay").classList.add("show");
+      renderCalendar();
+      renderLog();
+    }
+
+   function closeLog() {
+
+  selectedDate = null;
+
+  document
+    .getElementById("overlay")
+    .classList.remove("show");
+}
+
+    function renderCalendar() {
+      calendar.innerHTML = "";
+
+      const now = new Date();
+      const year = now.getFullYear();
+      const month = now.getMonth();
+      const lastDay = new Date(year, month + 1, 0).getDate();
+
+      const loggedDates = new Set(items.map(item => item.date));
+
+      for (let day = 1; day <= lastDay; day++) {
+        const date = new Date(year, month, day);
+        const key = getDateKey(date);
+
+        const cell = document.createElement("div");
+        cell.className = "day-cell";
+        cell.textContent = day;
+
+        if (loggedDates.has(key)) {
+          cell.classList.add("has-log");
+        }
+cell.addEventListener("click", () => {
+
+  selectedDate = key;
+
+  renderLog();
+
+});
+        calendar.appendChild(cell);
+      }
+    }
+
+    function renderLog() {
+      const grouped = {};
+
+      items.forEach(item => {
+        if (!grouped[item.date]) grouped[item.date] = [];
+        grouped[item.date].push(item);
+      });
+
+      let dates = Object.keys(grouped)
+  .sort()
+  .reverse();
+
+if (selectedDate) {
+  dates = dates.filter(date => date === selectedDate);
+}
+
+      if (dates.length === 0) {
+        logPanel.innerHTML = "まだ記録はありません。";
+        return;
+      }
+
+      logPanel.innerHTML = dates.map(date => {
+        const total = grouped[date].length;
+        const stopped = grouped[date].filter(item => item.stopped).length;
+
+        const itemHtml = grouped[date].map(item => {
+          const stoppedText = item.stopped
+            ? ` <span class="log-stopped">/ ${formatTime(item.stoppedAt)}で止まった</span>`
+            : "";
+
+          return `
+            <div class="log-item">
+              ・${escapeHtml(item.text)}${stoppedText}
+            </div>
+          `;
+        }).join("");
+
+        return `
+          <div class="log-day">
+            <div class="log-date">${date}</div>
+            <div>置いたこと：${total}件 / 途中で止まった：${stopped}件</div>
+            ${itemHtml}
+          </div>
+        `;
+      }).join("");
+    }
+
+    function saveItems() {
+      localStorage.setItem("nottodoItems", JSON.stringify(items));
+    }
+
+    function loadItems() {
+      const saved = localStorage.getItem("nottodoItems");
+      items = saved ? JSON.parse(saved) : [];
+    }
+
+    function escapeHtml(text) {
+      return text
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#039;");
+    }
+  </script>
+</body>
+</html>
