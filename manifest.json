@@ -1,1 +1,16 @@
-
+{
+  "name": "NOTTODO",
+  "short_name": "NOTTODO",
+  "start_url": "/nottodo/",
+  "scope": "/nottodo/",
+  "display": "standalone",
+  "background_color": "#f8f5ef",
+  "theme_color": "#f8f5ef",
+  "icons": [
+    {
+      "src": "icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
